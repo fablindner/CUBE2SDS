@@ -6,7 +6,6 @@ import os
 
 
 def new_net_stn_chn(fn, stn_mapping):
-    #fn_ = fn.split("/")[-1]
     stn_old = fn[2:5]
     chn_old = fn[-1]
 
@@ -74,37 +73,35 @@ cparser.read("config.ini")
 
 # read cube file names
 path_output = cparser.items("directories")[2][1]
-file_list  = glob.glob("%s/*.pri*" % path_output)
-file_pttrn = list(set([fn.split("/")[-1][:11] for fn in file_list]))
+file_list   = glob.glob("%s/*.pri*" % path_output)
+file_pttrn  = sorted(list(set([fn.split("/")[-1][:11] + "*" + fn.split("/")[-1][-5:] \
+    for fn in file_list])))
 
 # read station mapping
 stn_mapping = cparser.items("stn_mapping")
 
 
 for fp in file_pttrn:
-    for ch in [".pri0", ".pri1", ".pri2"]:
-        fn = fp + "*" + ch
-        print("processing files matching '%s'" % fn)
-        
-        # extract network, station and channel corresponding to the CUBE file
-        # according to the station mapping.
-        net, stn, chn = new_net_stn_chn(fn, stn_mapping)
-        
-        # read file and update network, station and channel code
-        st = read(path_output + "/" + fn)
-        st = update_stats(st, net, stn, chn)
-        
-        # slice stream into daily records
-        st_dict, year = slice_st_jday(st)
+    print("Processing files matching '%s'" % fp)
+    # extract network, station and channel corresponding to the CUBE file
+    # according to the station mapping.
+    net, stn, chn = new_net_stn_chn(fp, stn_mapping)
+    
+    # read file and update network, station and channel code
+    st = read(path_output + "/" + fp)
+    st = update_stats(st, net, stn, chn)
+    
+    # slice stream into daily records
+    st_dict, year = slice_st_jday(st)
 
-        # create directory for station and channel
-        directory = "/%s/%s/%s/%s/%s.D/" % (path_output, year, net, stn, chn)
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-        
-        # write daily records
-        jdays = st_dict.keys()
-        for jday in jdays:
-            fn_new = "%s/4D.%s..%s.D.%i.%s" % (directory, stn, chn, year, jday)
-            st_ = st_dict[jday]
-            st_.write(fn_new, format="MSEED")
+    # create directory in SDS format
+    directory = "/%s/%s/%s/%s/%s.D/" % (path_output, year, net, stn, chn)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    
+    # write daily records
+    jdays = st_dict.keys()
+    for jday in jdays:
+        fn_new = "%s/4D.%s..%s.D.%i.%s" % (directory, stn, chn, year, jday)
+        st_ = st_dict[jday]
+        st_.write(fn_new, format="MSEED")
