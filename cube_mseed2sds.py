@@ -1,3 +1,14 @@
+"""
+Script to rename DATA-CUBE miniseed files in the SDS convention. Saves the
+files in the SDS data structure.
+
+Created on Fri Apr 26 2018
+
+@author: Fabian Lindner
+"""
+
+
+
 from obspy import read, UTCDateTime
 from configparser import ConfigParser
 import numpy as np

@@ -1,3 +1,9 @@
+#!/bin/bash
+### Description: Executes data conversion DATA-CUBE binaries -> miniseed and
+### 		 renames and formates the miniseed file into the SDS structure.
+### Written by: Fabian Lindner (lindner@vaw.baug.ethz.ch) in April 2019.
+
+
 # Import the variables 'path_cbtool', 'path_binary', 'path_output' from the
 # config.ini file.
 source <(grep '^export .*=' config.ini)
