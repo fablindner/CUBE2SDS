@@ -6,6 +6,13 @@ import os
 
 
 def new_net_stn_chn(fn, stn_mapping):
+    """
+    Extract DATA-CUBE name and channel number from file name. Return the 
+    corresponding network, station, and channel code.
+    :param fn: The filename pattern.
+    :param stn_mapping: Station mapping from the config.ini file as read with
+        the ConfigParser.
+    """
     stn_old = fn[2:5]
     chn_old = fn[-1]
 
@@ -39,28 +46,19 @@ def slice_st_jday(st):
     Function to slice stream into daily stream objects.
     :param st: stream object
     """
-    # check if start and endtime are in same year - raise error otherwise!
-    if st[0].stats.starttime.year != st[-1].stats.endtime.year:
-        raise ValueError("Starttime and endtime are in different years.")
-
-    # obtain minimum and maximum day of the year
-    jday_min = st[0].stats.starttime.julday
-    jday_max = []
-    for tr in st:
-        jday_max.append(tr.stats.endtime.julday)
-    jday_max = max(jday_max)
+    # extract all year-julday combinations
+    year_jday_st = [(tr.stats.starttime.year, tr.stats.starttime.julday) for tr in st]
+    year_jday_et = [(tr.stats.endtime.year, tr.stats.endtime.julday) for tr in st]
+    year_jday    = sorted(list(set(year_jday_st + year_jday_et)))
 
     # slice stream into daily (sub)streams
-    st_dict = {} 
-    year = st[0].stats.starttime.year
-    dt = st[0].stats.delta
-    for j in range(jday_min, jday_max+1):
-        t1 = UTCDateTime(year, 1, 1, 0, 0, 0)
-        t1.julday = j
-        t2 = t1 + 24. * 3600. - dt
-        jday = "%03d" % j
-        st_dict[jday] = st.slice(t1, t2)
-    return st_dict, year
+    st_list = []
+    for yr_jd in year_jday:
+        t1 = UTCDateTime(yr_jd[0], 1, 1, 0, 0, 0)
+        t1.julday = yr_jd[1] 
+        t2 = t1 + 24. * 3600. - st[0].stats.delta 
+        st_list.append(st.slice(t1, t2))
+    return year_jday, st_list
 
 
 
@@ -80,8 +78,9 @@ file_pttrn  = sorted(list(set([fn.split("/")[-1][:11] + "*" + fn.split("/")[-1][
 # read station mapping
 stn_mapping = cparser.items("stn_mapping")
 
-
+# loop over file patterns ...
 for fp in file_pttrn:
+
     print("Processing files matching '%s'" % fp)
     # extract network, station and channel corresponding to the CUBE file
     # according to the station mapping.
@@ -92,16 +91,12 @@ for fp in file_pttrn:
     st = update_stats(st, net, stn, chn)
     
     # slice stream into daily records
-    st_dict, year = slice_st_jday(st)
+    year_jday, st_list = slice_st_jday(st)
 
-    # create directory in SDS format
-    directory = "/%s/%s/%s/%s/%s.D/" % (path_output, year, net, stn, chn)
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    
-    # write daily records
-    jdays = st_dict.keys()
-    for jday in jdays:
-        fn_new = "%s/4D.%s..%s.D.%i.%s" % (directory, stn, chn, year, jday)
-        st_ = st_dict[jday]
-        st_.write(fn_new, format="MSEED")
+    # write daily records in SDS format
+    for i, yr_jd in enumerate(year_jday):
+        directory = "/%s/%s/%s/%s/%s.D/" % (path_output, yr_jd[0], net, stn, chn)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        fn_new = "%s/%s.%s..%s.D.%04d.%03d" % (directory, net, stn, chn, yr_jd[0], yr_jd[1])
+        st_list[i].write(fn_new, format="MSEED")
