@@ -46,13 +46,10 @@ def slice_st_jday(st):
     Function to slice stream into daily stream objects.
     :param st: stream object
     """
-    # extract all year-julday combinations of starttimes
-    for tr in st:
-        if tr.stats.starttime.julday != tr.stats.endtime.julday:
-            raise ValueError("Julian day of starttime and endtime are not identical"\
-                           + "for the following trace:\n %s" % tr)
-        year_jday = sorted(list(set([(tr.stats.starttime.year, tr.stats.starttime.julday)\
-                for tr in st])))
+    # extract all year-julday combinations
+    year_jday_st = [(tr.stats.starttime.year, tr.stats.starttime.julday) for tr in st]
+    year_jday_et = [(tr.stats.endtime.year, tr.stats.endtime.julday) for tr in st]
+    year_jday    = sorted(list(set(year_jday_st + year_jday_et)))
 
     # slice stream into daily (sub)streams
     st_list = []
