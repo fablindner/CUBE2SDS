@@ -110,4 +110,7 @@ for fp in file_pttrn:
         if not os.path.exists(directory):
             os.makedirs(directory)
         fn_new = "%s/%s.%s..%s.D.%04d.%03d" % (directory, net, stn, chn, yr_jd[0], yr_jd[1])
+        # if file already exists, read in and merge to current file
+        if os.path.isfile(fn_new):
+            st_list[i] += read(fn_new)
         st_list[i].write(fn_new, format="MSEED")
