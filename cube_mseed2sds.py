@@ -65,8 +65,7 @@ def slice_st_jday(st):
     # slice stream into daily (sub)streams
     st_list = []
     for yr_jd in year_jday:
-        t1 = UTCDateTime(yr_jd[0], 1, 1, 0, 0, 0)
-        t1.julday = yr_jd[1] 
+        t1 = UTCDateTime(year=yr_jd[0], julday=yr_jd[1])
         t2 = t1 + 24. * 3600. - st[0].stats.delta 
         st_list.append(st.slice(t1, t2))
     return year_jday, st_list
