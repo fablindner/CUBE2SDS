@@ -15,7 +15,9 @@ echo "============ Converting DATA-CUBE binaries to MSEED files ... ============
 echo "=========================================================================="
 $path_cbtool/cube2mseed -v \
 	--output-dir=$path_output $path_binary \
-	--fringe-samples=$fringe_samples
+	--fringe-samples=$fringe_samples \
+	--trace-start=$trace_start \
+	--trace-stop=$trace_stop
 
 # Rename the DATA-CUBE mseed files created through the previous command using the
 # station mapping provided in the config.ini file and save them in the SDS format.
