@@ -81,7 +81,7 @@ cparser.read("config.ini")
 
 # read cube file names
 path_output = cparser.items("directories")[2][1]
-file_list   = glob.glob("%s/*.pri*" % path_output)
+file_list   = glob.glob(os.path.join(path_output, "*.pri*"))
 file_pttrn  = sorted(list(set([fn.split("/")[-1][:11] + "*" + fn.split("/")[-1][-5:] \
     for fn in file_list])))
 
@@ -97,7 +97,7 @@ for fp in file_pttrn:
     net, stn, chn = new_net_stn_chn(fp, stn_mapping)
     
     # read file and update network, station and channel code
-    st = read(path_output + "/" + fp)
+    st = read(os.path.join(path_output, fp))
     st = update_stats(st, net, stn, chn)
     
     # slice stream into daily records
@@ -105,11 +105,11 @@ for fp in file_pttrn:
 
     # write daily records in SDS format
     for i, yr_jd in enumerate(year_jday):
-        directory = "/%s/%s/%s/%s/%s.D/" % (path_output, yr_jd[0], net, stn, chn)
+        directory = os.path.join(path_output, "%04d" % yr_jd[0], net, stn, "%s.D" % chn)
         if not os.path.exists(directory):
             os.makedirs(directory)
-        fn_new = "%s/%s.%s..%s.D.%04d.%03d" % (directory, net, stn, chn, yr_jd[0], yr_jd[1])
+        fn_new = os.path.join(directory, "%s.%s..%s.D.%04d.%03d" % (net, stn, chn, yr_jd[0], yr_jd[1]))
         # if file already exists, read in and merge to current file
         if os.path.isfile(fn_new):
             st_list[i] += read(fn_new)
-        st_list[i].write(fn_new, format="MSEED")
+        st_list[i]._cleanup().write(fn_new, format="MSEED")
