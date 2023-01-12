@@ -8,7 +8,7 @@ CUBE2SDS is a tool to rename and format DATA-CUBE minseed files into the SDS str
 ./cube2sds.sh
 ```
 
-Paths to the conversion software, DATA-CUBE binary files and output directory files need to be specified in ```config.ini```. This file also contains the station mapping from DATA-CUBE name to network code, station code and channels. Test data and the latest DATA-CUBE conversion tool (as of April 2019) are provided on VAW's vierzack07 server under ```/scratch_net/vierzack07_fourth/GlaSeis/DATA-CUBE3```, which can be used from any Linux machine at VAW. Please check for newer versions of the DATA-CUBE conversion software.
+Paths to the conversion software, DATA-CUBE binary files and output directory files need to be specified in ```config.ini```. This file also contains the station mapping from DATA-CUBE name to network code, station code and channels. Check for the latest version of the DATA-CUBE conversion software.
 
 ## Requirements
 A (ana)conda environment named "obspy" containing the following packages:
